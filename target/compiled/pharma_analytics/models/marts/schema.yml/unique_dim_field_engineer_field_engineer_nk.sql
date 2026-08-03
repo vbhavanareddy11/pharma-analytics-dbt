@@ -1,0 +1,14 @@
+
+    
+    
+
+select
+    field_engineer_nk as unique_field,
+    count(*) as n_records
+
+from ANALYTICS.DBT_BHAVANA.dim_field_engineer
+where field_engineer_nk is not null
+group by field_engineer_nk
+having count(*) > 1
+
+
