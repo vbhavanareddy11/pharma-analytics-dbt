@@ -1,0 +1,71 @@
+ZONE_CODE,SUB_ZONE_NAME,ZONE_NAME,COUNTRY,REGION
+APAC-TH-01,North Thailand Sub-Region 1,North Thailand,Thailand,APAC
+APAC-TH-02,South Thailand Sub-Region 2,South Thailand,Thailand,APAC
+APAC-TH-03,East Thailand Sub-Region 3,East Thailand,Thailand,APAC
+APAC-TH-04,West Thailand Sub-Region 4,West Thailand,Thailand,APAC
+APAC-TH-05,Central Thailand Sub-Region 5,Central Thailand,Thailand,APAC
+APAC-VN-01,North Vietnam Sub-Region 1,North Vietnam,Vietnam,APAC
+APAC-VN-02,South Vietnam Sub-Region 2,South Vietnam,Vietnam,APAC
+APAC-VN-03,East Vietnam Sub-Region 3,East Vietnam,Vietnam,APAC
+APAC-VN-04,West Vietnam Sub-Region 4,West Vietnam,Vietnam,APAC
+APAC-VN-05,Central Vietnam Sub-Region 5,Central Vietnam,Vietnam,APAC
+APAC-MY-01,North Malaysia Sub-Region 1,North Malaysia,Malaysia,APAC
+APAC-MY-02,South Malaysia Sub-Region 2,South Malaysia,Malaysia,APAC
+APAC-MY-03,East Malaysia Sub-Region 3,East Malaysia,Malaysia,APAC
+APAC-MY-04,West Malaysia Sub-Region 4,West Malaysia,Malaysia,APAC
+APAC-MY-05,Central Malaysia Sub-Region 5,Central Malaysia,Malaysia,APAC
+APAC-SG-01,North Singapore Sub-Region 1,North Singapore,Singapore,APAC
+APAC-SG-02,South Singapore Sub-Region 2,South Singapore,Singapore,APAC
+APAC-SG-03,East Singapore Sub-Region 3,East Singapore,Singapore,APAC
+APAC-SG-04,West Singapore Sub-Region 4,West Singapore,Singapore,APAC
+APAC-SG-05,Central Singapore Sub-Region 5,Central Singapore,Singapore,APAC
+APAC-ID-01,North Indonesia Sub-Region 1,North Indonesia,Indonesia,APAC
+APAC-ID-02,South Indonesia Sub-Region 2,South Indonesia,Indonesia,APAC
+APAC-ID-03,East Indonesia Sub-Region 3,East Indonesia,Indonesia,APAC
+APAC-ID-04,West Indonesia Sub-Region 4,West Indonesia,Indonesia,APAC
+APAC-ID-05,Central Indonesia Sub-Region 5,Central Indonesia,Indonesia,APAC
+APAC-PH-01,North Philippines Sub-Region 1,North Philippines,Philippines,APAC
+APAC-PH-02,South Philippines Sub-Region 2,South Philippines,Philippines,APAC
+APAC-PH-03,East Philippines Sub-Region 3,East Philippines,Philippines,APAC
+APAC-PH-04,West Philippines Sub-Region 4,West Philippines,Philippines,APAC
+APAC-PH-05,Central Philippines Sub-Region 5,Central Philippines,Philippines,APAC
+APAC-IN-01,North India Sub-Region 1,North India,India,APAC
+APAC-IN-02,South India Sub-Region 2,South India,India,APAC
+APAC-IN-03,East India Sub-Region 3,East India,India,APAC
+APAC-IN-04,West India Sub-Region 4,West India,India,APAC
+APAC-IN-05,Central India Sub-Region 5,Central India,India,APAC
+APAC-JP-01,North Japan Sub-Region 1,North Japan,Japan,APAC
+APAC-JP-02,South Japan Sub-Region 2,South Japan,Japan,APAC
+APAC-JP-03,East Japan Sub-Region 3,East Japan,Japan,APAC
+APAC-JP-04,West Japan Sub-Region 4,West Japan,Japan,APAC
+APAC-JP-05,Central Japan Sub-Region 5,Central Japan,Japan,APAC
+APAC-KR-01,North South Korea Sub-Region 1,North South Korea,South Korea,APAC
+APAC-KR-02,South South Korea Sub-Region 2,South South Korea,South Korea,APAC
+APAC-KR-03,East South Korea Sub-Region 3,East South Korea,South Korea,APAC
+APAC-KR-04,West South Korea Sub-Region 4,West South Korea,South Korea,APAC
+APAC-KR-05,Central South Korea Sub-Region 5,Central South Korea,South Korea,APAC
+APAC-TW-01,North Taiwan Sub-Region 1,North Taiwan,Taiwan,APAC
+APAC-TW-02,South Taiwan Sub-Region 2,South Taiwan,Taiwan,APAC
+APAC-TW-03,East Taiwan Sub-Region 3,East Taiwan,Taiwan,APAC
+APAC-TW-04,West Taiwan Sub-Region 4,West Taiwan,Taiwan,APAC
+APAC-TW-05,Central Taiwan Sub-Region 5,Central Taiwan,Taiwan,APAC
+APAC-HK-01,North Hong Kong Sub-Region 1,North Hong Kong,Hong Kong,APAC
+APAC-HK-02,South Hong Kong Sub-Region 2,South Hong Kong,Hong Kong,APAC
+APAC-HK-03,East Hong Kong Sub-Region 3,East Hong Kong,Hong Kong,APAC
+APAC-HK-04,West Hong Kong Sub-Region 4,West Hong Kong,Hong Kong,APAC
+APAC-HK-05,Central Hong Kong Sub-Region 5,Central Hong Kong,Hong Kong,APAC
+APAC-AU-01,North Australia Sub-Region 1,North Australia,Australia,APAC
+APAC-AU-02,South Australia Sub-Region 2,South Australia,Australia,APAC
+APAC-AU-03,East Australia Sub-Region 3,East Australia,Australia,APAC
+APAC-AU-04,West Australia Sub-Region 4,West Australia,Australia,APAC
+APAC-AU-05,Central Australia Sub-Region 5,Central Australia,Australia,APAC
+APAC-NZ-01,North New Zealand Sub-Region 1,North New Zealand,New Zealand,APAC
+APAC-NZ-02,South New Zealand Sub-Region 2,South New Zealand,New Zealand,APAC
+APAC-NZ-03,East New Zealand Sub-Region 3,East New Zealand,New Zealand,APAC
+APAC-NZ-04,West New Zealand Sub-Region 4,West New Zealand,New Zealand,APAC
+APAC-NZ-05,Central New Zealand Sub-Region 5,Central New Zealand,New Zealand,APAC
+APAC-CN-01,North China Sub-Region 1,North China,China,APAC
+APAC-CN-02,South China Sub-Region 2,South China,China,APAC
+APAC-CN-03,East China Sub-Region 3,East China,China,APAC
+APAC-CN-04,West China Sub-Region 4,West China,China,APAC
+APAC-CN-05,Central China Sub-Region 5,Central China,China,APAC

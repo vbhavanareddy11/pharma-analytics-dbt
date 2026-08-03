@@ -1,0 +1,89 @@
+version: 2
+
+sources:
+  - name: salesforce
+    description: "Raw CRM data extracted from Salesforce (customers, sales opportunities, service tickets, users)."
+    database: RAW
+    schema: SALESFORCE
+    tables:
+      - name: account
+        description: "Hospitals, clinics, hospital chains, and independent distributors. Same table represents customers and distributors — distinguished by ACCOUNT_TYPE and IS_DISTRIBUTOR."
+        columns:
+          - name: id
+            description: "Salesforce 18-char account ID. Primary key."
+            tests:
+              - unique
+              - not_null
+
+      - name: user
+        description: "Sales reps, field engineers, sales managers, regional service managers. All personas live in one table, distinguished by USER_ROLE."
+        columns:
+          - name: id
+            description: "Salesforce 18-char user ID. Primary key."
+            tests:
+              - unique
+              - not_null
+
+      - name: opportunity
+        description: "Closed-won sales — one row per device sold. Sales fact source. Grain: one device (identified by DEVICE_SERIAL_NUMBER)."
+        columns:
+          - name: id
+            description: "Salesforce 18-char opportunity ID. Primary key."
+            tests:
+              - unique
+              - not_null
+          - name: device_serial_number
+            description: "Unique serial per physical device sold. Join key to service tickets."
+            tests:
+              - unique
+              - not_null
+
+      - name: case
+        description: "Service tickets on sold devices. One row per ticket. Includes warranty status at ticket-open time (not current time)."
+        columns:
+          - name: id
+            description: "Salesforce 18-char case ID. Primary key."
+            tests:
+              - unique
+              - not_null
+
+      - name: case_part_usage
+        description: "Spare parts consumed per service ticket. Child of case; multiple parts per ticket possible."
+        columns:
+          - name: id
+            description: "Salesforce 18-char case-part-usage ID. Primary key."
+            tests:
+              - unique
+              - not_null
+
+  - name: sap
+    description: "Raw ERP data extracted from SAP (product master, distributors, spare parts catalog)."
+    database: RAW
+    schema: SAP
+    tables:
+      - name: material_master
+        description: "Product catalog — medical devices across 4-level hierarchy (business unit → therapy area → family → line)."
+        columns:
+          - name: material_id
+            description: "SAP surrogate product ID. Primary key."
+            tests:
+              - unique
+              - not_null
+
+      - name: distributor
+        description: "SAP supply-chain view of distributors — vendor codes, credit limits, regulatory licenses. Bridges to Salesforce ACCOUNT via SALESFORCE_ACCOUNT_ID."
+        columns:
+          - name: distributor_id
+            description: "SAP distributor ID. Primary key."
+            tests:
+              - unique
+              - not_null
+
+      - name: spare_parts
+        description: "Parts catalog. Each part compatible with one product line."
+        columns:
+          - name: part_id
+            description: "SAP part ID. Primary key."
+            tests:
+              - unique
+              - not_null

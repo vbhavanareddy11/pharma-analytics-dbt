@@ -1,0 +1,514 @@
+version: 2
+
+models:
+
+  # ============================================================
+  # DIMENSIONS
+  # ============================================================
+
+  - name: dim_product
+    description: >
+      Product dimension. Medical devices with 4-level hierarchy (business unit →
+      therapy area → product family → product line), economics (list price,
+      production cost, warranty months), and install requirement flags.
+      Grain: one row per product. Materialized as table.
+    columns:
+      - name: product_sk
+        description: "Surrogate key — MD5 hash of material_id."
+        tests:
+          - unique
+          - not_null
+      - name: product_nk
+        description: "Natural key from SAP (material_id)."
+        tests:
+          - unique
+          - not_null
+      - name: product_code
+        description: "SAP-style product code (e.g. MED-VENT-001-00042)."
+      - name: product_name
+        description: "Human-readable product name."
+      - name: business_unit
+        description: "Top-level product hierarchy — e.g. Medical Devices."
+        tests:
+          - not_null
+      - name: therapy_area
+        description: "Second-level hierarchy — e.g. Diabetes Care, Respiratory Care."
+        tests:
+          - not_null
+      - name: product_family
+        description: "Third-level hierarchy — e.g. Glucose Monitoring, Ventilators."
+        tests:
+          - not_null
+      - name: product_line
+        description: "Fourth-level hierarchy — e.g. GlucoCheck Home Series."
+        tests:
+          - not_null
+      - name: disease_category
+        description: "Disease area the product treats. Join key to disease prevalence."
+        tests:
+          - accepted_values:
+              values: ['Diabetes', 'Respiratory', 'Cardiac', 'Renal', 'Oncology']
+      - name: list_price
+        description: "Sticker price in USD."
+      - name: production_cost
+        description: "Company's cost to produce one unit, in USD."
+      - name: warranty_months
+        description: "Warranty duration in months, per family."
+      - name: requires_hw_install
+        description: "TRUE if hardware install required at customer site."
+      - name: requires_sw_install
+        description: "TRUE if software configuration required post-delivery."
+      - name: service_tier
+        description: "Service coverage tier — Standard or Premium."
+        tests:
+          - accepted_values:
+              values: ['Standard', 'Premium']
+      - name: launch_date
+        description: "Date product first became available."
+      - name: is_active
+        description: "TRUE if currently in the sales catalog."
+
+  - name: dim_customer
+    description: >
+      Customer dimension. Hospitals, hospital chains, clinics, and independent
+      distributors (some hospitals also act as distributors). Enriched with full
+      zone hierarchy from the seed table. Grain: one row per account.
+    columns:
+      - name: customer_sk
+        description: "Surrogate key — MD5 hash of account_id."
+        tests:
+          - unique
+          - not_null
+      - name: customer_nk
+        description: "Natural key — Salesforce 18-char account ID."
+        tests:
+          - unique
+          - not_null
+      - name: account_number
+        description: "Business-facing account code."
+      - name: customer_name
+        description: "Full customer/organization name."
+      - name: customer_type
+        description: "Salesforce account type."
+        tests:
+          - accepted_values:
+              values: ['Hospital', 'Hospital Chain', 'Clinic', 'Independent Distributor']
+      - name: tier
+        description: "Customer size tier."
+        tests:
+          - accepted_values:
+              values: ['Tier 1', 'Tier 2', 'Tier 3']
+      - name: is_distributor
+        description: "TRUE if this account also acts as a distributor."
+      - name: parent_account_id
+        description: "Salesforce ID of parent account if this is a child. NULL for standalone or top-level."
+      - name: country
+        description: "Country name."
+      - name: region
+        description: "Top-level region — APAC for this dataset."
+        tests:
+          - accepted_values:
+              values: ['APAC']
+      - name: zone_code
+        description: "Zone code (e.g. APAC-TH-01). Foreign key to dim_zone."
+      - name: zone_name
+        description: "Human-readable zone name."
+      - name: sub_zone_name
+        description: "Sub-zone name for finer geographic drill-down."
+      - name: assigned_sales_rep_id
+        description: "Salesforce user ID of the assigned sales rep."
+      - name: contract_start_date
+        description: "Date customer relationship began."
+      - name: is_active
+        description: "TRUE if customer is currently active."
+      - name: geo_data_quality
+        description: "Flag from int_accounts_with_zone — 'ok', 'zone_not_found', or 'country_zone_mismatch'."
+
+  - name: dim_distributor
+    description: >
+      Distributor dimension. SAP supply-chain and Salesforce commercial views
+      unified. Includes name reconciliation status flagging mismatches between
+      the two source systems. Grain: one row per distributor.
+    columns:
+      - name: distributor_sk
+        description: "Surrogate key — MD5 hash of distributor_id."
+        tests:
+          - unique
+          - not_null
+      - name: distributor_nk
+        description: "Natural key — SAP distributor_id."
+        tests:
+          - unique
+          - not_null
+      - name: sap_vendor_code
+        description: "SAP business key for the vendor."
+      - name: salesforce_account_id
+        description: "Bridge to Salesforce ACCOUNT — same distributor entity."
+      - name: distributor_name
+        description: "Canonical name (Salesforce preferred over SAP if both exist)."
+      - name: name_reconciliation_status
+        description: "Data quality — match, mismatch, or missing_in_salesforce."
+        tests:
+          - accepted_values:
+              values: ['match', 'mismatch', 'missing_in_salesforce']
+      - name: country
+        description: "Country of operation."
+      - name: warehouse_location
+        description: "Physical warehouse city."
+      - name: credit_limit
+        description: "Maximum SAP-approved credit exposure, in USD."
+      - name: payment_terms_days
+        description: "Net payment terms — 30, 60, or 90 days."
+      - name: shipping_cost_per_order
+        description: "Average shipping cost per order, in USD."
+      - name: regulatory_license_number
+        description: "Local medical device distribution license."
+      - name: license_expiry_date
+        description: "License validity end date — critical operational metric."
+      - name: quality_certification
+        description: "ISO cert status — e.g. ISO 13485."
+      - name: is_approved_vendor
+        description: "TRUE if cleared by SAP procurement."
+      - name: contract_start_date
+        description: "SAP contract start date."
+      - name: contract_end_date
+        description: "SAP contract end date. NULL for open-ended contracts."
+
+  - name: dim_sales_rep
+    description: >
+      Sales rep dimension. Filtered from the unified USER table where
+      user_role = 'Sales Rep'. Includes commission tier and compensation.
+      Grain: one row per sales rep.
+    columns:
+      - name: sales_rep_sk
+        description: "Surrogate key — MD5 hash of user_id."
+        tests:
+          - unique
+          - not_null
+      - name: sales_rep_nk
+        description: "Natural key — Salesforce 18-char user_id."
+        tests:
+          - unique
+          - not_null
+      - name: employee_id
+        description: "HR-side identifier."
+      - name: full_name
+        description: "First + last name concatenated."
+      - name: email
+        description: "Corporate email."
+      - name: assigned_zone
+        description: "Zone this rep covers."
+      - name: country
+        description: "Country of assignment."
+      - name: manager_id
+        description: "Salesforce user_id of the sales manager."
+      - name: hire_date
+        description: "Date of joining."
+      - name: termination_date
+        description: "Date of leaving. NULL if still employed."
+      - name: base_salary
+        description: "Annual base salary, in USD."
+      - name: commission_tier
+        description: "Sales rep tier — determines commission structure."
+        tests:
+          - accepted_values:
+              values: ['Tier A', 'Tier B', 'Tier C']
+      - name: is_active
+        description: "TRUE if currently employed."
+
+  - name: dim_field_engineer
+    description: >
+      Field engineer dimension. Filtered from the unified USER table where
+      user_role = 'Field Engineer'. Includes hourly cost rate (used in
+      service ticket cost calculations). Grain: one row per engineer.
+    columns:
+      - name: field_engineer_sk
+        description: "Surrogate key — MD5 hash of user_id."
+        tests:
+          - unique
+          - not_null
+      - name: field_engineer_nk
+        description: "Natural key — Salesforce 18-char user_id."
+        tests:
+          - unique
+          - not_null
+      - name: employee_id
+        description: "HR-side identifier."
+      - name: full_name
+        description: "First + last name concatenated."
+      - name: email
+        description: "Corporate email."
+      - name: assigned_zone
+        description: "Zone this engineer covers."
+      - name: country
+        description: "Country of assignment."
+      - name: manager_id
+        description: "Salesforce user_id of the regional service manager."
+      - name: hire_date
+        description: "Date of joining."
+      - name: termination_date
+        description: "Date of leaving. NULL if still employed."
+      - name: base_salary
+        description: "Annual base salary, in USD."
+      - name: hourly_cost_rate
+        description: "Fully-loaded hourly cost — used to compute ticket labor cost."
+        tests:
+          - not_null
+      - name: is_active
+        description: "TRUE if currently employed."
+
+  - name: dim_zone
+    description: >
+      Zone dimension. Full geographic hierarchy (sub_zone → zone → country →
+      region) plus aggregated disease prevalence metrics per zone from the seed.
+      Grain: one row per zone.
+    columns:
+      - name: zone_sk
+        description: "Surrogate key — MD5 hash of zone_code."
+        tests:
+          - unique
+          - not_null
+      - name: zone_nk
+        description: "Natural key — zone_code (e.g. APAC-TH-01)."
+        tests:
+          - unique
+          - not_null
+      - name: sub_zone_name
+        description: "Sub-zone name — finest geographic granularity."
+      - name: zone_name
+        description: "Zone name — mid-level geography."
+      - name: country
+        description: "Country the zone belongs to."
+      - name: region
+        description: "Top-level region (APAC for this dataset)."
+        tests:
+          - not_null
+      - name: diseases_measured
+        description: "Count of disease categories with prevalence data for this zone."
+      - name: avg_prevalence_score
+        description: "Average prevalence score across all disease categories in this zone."
+      - name: max_prevalence_score
+        description: "Highest prevalence score in this zone across any disease."
+
+  - name: dim_date
+    description: >
+      Date dimension. Every calendar date from 2020-01-01 through 2028-12-31
+      with standard time attributes (year, quarter, month, weekday, ISO week)
+      and labels for formatting (month_name, year_quarter). Grain: one row
+      per calendar date.
+    columns:
+      - name: calendar_date
+        description: "The date itself. Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: date_id
+        description: "Date as ISO string (YYYY-MM-DD)."
+      - name: year
+        description: "Calendar year."
+        tests:
+          - not_null
+      - name: quarter
+        description: "Calendar quarter (1-4)."
+      - name: month
+        description: "Month number (1-12)."
+      - name: day_of_month
+        description: "Day within the month (1-31)."
+      - name: day_of_week
+        description: "Day of week (0=Sunday, 6=Saturday)."
+      - name: week_of_year
+        description: "ISO week number."
+      - name: day_of_year
+        description: "Day within the year (1-366)."
+      - name: month_name
+        description: "Full month name (January, February, etc.)."
+      - name: day_name
+        description: "Full day name (Monday, Tuesday, etc.)."
+      - name: year_quarter
+        description: "e.g. 2024-Q1."
+      - name: year_month
+        description: "e.g. 2024-03."
+      - name: is_weekend
+        description: "TRUE for Saturday or Sunday."
+      - name: is_month_start
+        description: "TRUE for the 1st of the month."
+      - name: is_month_end
+        description: "TRUE for the last calendar day of the month."
+
+  # ============================================================
+  # FACTS
+  # ============================================================
+
+  - name: fct_sales
+    description: >
+      Sales fact — one row per device sold. Materialized as INCREMENTAL:
+      new rows append based on stg_salesforce__opportunity.updated_at watermark.
+      unique_key = sale_sk. First run: full load. Subsequent runs: only new
+      opportunities pull. Full refresh: dbt run --full-refresh --select fct_sales.
+    columns:
+      - name: sale_sk
+        description: "Fact surrogate key. MD5 hash of opportunity_id."
+        tests:
+          - unique
+          - not_null
+      - name: sale_nk
+        description: "Natural key — Salesforce opportunity_id."
+        tests:
+          - unique
+          - not_null
+      - name: opportunity_number
+        description: "Business-facing opportunity code (e.g. OPP-2024-000847)."
+      - name: device_serial_number
+        description: "Unique per physical device sold. Join key to service tickets."
+        tests:
+          - unique
+          - not_null
+      - name: product_sk
+        description: "FK to dim_product."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_product')
+              field: product_sk
+      - name: customer_sk
+        description: "FK to dim_customer."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_sk
+      - name: sales_rep_sk
+        description: "FK to dim_sales_rep."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sales_rep')
+              field: sales_rep_sk
+      - name: date_sk
+        description: "FK to dim_date (calendar_date). The sale date."
+      - name: stage
+        description: "Opportunity stage — always 'Closed Won' in this fact (pipeline stages filtered out upstream)."
+      - name: payment_terms
+        description: "Net payment terms on this sale."
+      - name: quantity
+        description: "Units sold on this line (usually 1 for capital equipment)."
+        tests:
+          - not_null
+      - name: unit_sale_price
+        description: "Price per unit after discount, in USD."
+      - name: revenue
+        description: "Total line revenue = quantity × unit_sale_price."
+        tests:
+          - not_null
+      - name: discount_pct
+        description: "Discount off list price."
+      - name: net_revenue
+        description: "Revenue after applying discount."
+      - name: sale_date
+        description: "Date of the sale."
+      - name: warranty_start_date
+        description: "Warranty coverage start (usually equals sale_date)."
+      - name: warranty_end_date
+        description: "Warranty coverage end (sale_date + product warranty_months)."
+      - name: hardware_install_date
+        description: "When hardware install completed. NULL if pending."
+      - name: software_install_date
+        description: "When software install completed. NULL if pending."
+      - name: source_created_at
+        description: "When Salesforce created the opportunity record."
+      - name: source_updated_at
+        description: "Salesforce last-modified — used as incremental watermark."
+      - name: dbt_loaded_at
+        description: "When dbt built or updated this row."
+
+  - name: fct_service_tickets
+    description: >
+      Service ticket fact — one row per ticket. Enriched with pre-computed
+      economics from int_cases_with_parts_cost (labor cost, parts cost, total
+      company cost, customer revenue, net service cost). Materialized as table.
+    columns:
+      - name: service_ticket_sk
+        description: "Fact surrogate key. MD5 hash of case_id."
+        tests:
+          - unique
+          - not_null
+      - name: service_ticket_nk
+        description: "Natural key — Salesforce case_id."
+        tests:
+          - unique
+          - not_null
+      - name: case_number
+        description: "Business-facing case code (e.g. CASE-2024-004721)."
+      - name: device_serial_number
+        description: "The device this ticket concerns. Join key back to fct_sales."
+      - name: customer_sk
+        description: "FK to dim_customer."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_sk
+      - name: field_engineer_sk
+        description: "FK to dim_field_engineer."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_field_engineer')
+              field: field_engineer_sk
+      - name: product_sk
+        description: "FK to dim_product (via serial → sale → material_id lookup)."
+      - name: date_sk
+        description: "FK to dim_date (calendar_date). The ticket open date."
+      - name: case_type
+        description: "Type of service issue."
+        tests:
+          - accepted_values:
+              values: ['Hardware Failure', 'Software Issue', 'Calibration', 'Preventive Maintenance', 'User Training']
+      - name: priority
+        description: "Ticket urgency."
+        tests:
+          - accepted_values:
+              values: ['Critical', 'High', 'Medium', 'Low']
+      - name: status
+        description: "Current lifecycle state."
+        tests:
+          - accepted_values:
+              values: ['Open', 'In Progress', 'Resolved', 'Closed']
+      - name: resolution_code
+        description: "How the ticket was resolved. NULL if still open."
+      - name: ticket_channel
+        description: "How the ticket was handled — On-Site, Remote, or Phone Support."
+      - name: is_in_warranty
+        description: "TRUE if device was under warranty at ticket-open time."
+      - name: is_billable_to_customer
+        description: "TRUE if customer is charged (out-of-warranty tickets)."
+      - name: engineer_hours_logged
+        description: "Field engineer time on ticket."
+      - name: travel_hours_logged
+        description: "Travel time — only meaningful for On-Site tickets."
+      - name: total_hours_logged
+        description: "engineer_hours + travel_hours."
+      - name: parts_line_count
+        description: "Number of distinct parts consumed."
+      - name: total_parts_quantity
+        description: "Total quantity of parts consumed across all lines."
+      - name: labor_cost
+        description: "Total hours × engineer hourly cost rate, in USD."
+      - name: parts_cost_total
+        description: "Sum of parts unit costs × quantity, in USD."
+      - name: total_company_cost
+        description: "labor_cost + parts_cost_total — what the company spends."
+      - name: customer_revenue
+        description: "Revenue billed to customer. 0 if in-warranty."
+      - name: net_service_cost
+        description: "total_company_cost - customer_revenue. Net spend."
+      - name: opened_date
+        description: "When the ticket was opened."
+      - name: resolved_date
+        description: "When the fix was implemented. NULL if unresolved."
+      - name: closed_date
+        description: "When the ticket was formally closed. NULL if not closed."
+      - name: resolution_hours
+        description: "Hours between opened_date and resolved_date. NULL if unresolved."
+      - name: dbt_loaded_at
+        description: "When dbt built this row."

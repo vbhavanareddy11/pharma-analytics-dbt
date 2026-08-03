@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: int_devices_install_base
+    description: >
+      DOMAIN FLAGSHIP. Every device ever sold, enriched with commercial-analytics
+      business logic: (1) is_currently_active applies the 18-month rule — a device
+      is active if it has received service in the last 18 months, otherwise dark;
+      (2) is_in_warranty_today reflects live warranty status; (3) install_completion_status
+      tracks hardware and software install SLA state. This encodes the same
+      operational logic used in real pharma commercial reporting.
+
+  - name: int_cases_with_parts_cost
+    description: >
+      Every service ticket enriched with cost economics. Aggregates parts consumed,
+      applies field engineer hourly rate to labor hours, computes total company cost
+      per ticket, and calculates net service cost (cost minus revenue billed to
+      customer). Enables downstream service profitability analysis.
+
+  - name: int_distributors_unified
+    description: >
+      Unifies the SAP supply-chain view of distributors with the Salesforce
+      commercial view — same distributor represented in two source systems.
+      Handles real-world integration quirk: SAP and Salesforce names sometimes
+      differ in casing. Reconciliation status flags mismatches for MDM review.
+
+  - name: int_accounts_with_zone
+    description: >
+      Enriches Salesforce accounts with full zone hierarchy metadata from the
+      seed table (sub_zone → zone → country → region). Adds a geo_data_quality
+      flag that catches zone codes not found in the hierarchy or country-vs-zone
+      mismatches.
+
+  - name: int_products_with_disease_prevalence
+    description: >
+      Cross-joins products to zone-level disease prevalence data. Powers the
+      launch-targeting question: "for a new device treating disease X, which
+      zones are high-prevalence AND where do we currently under-index on sales?"
+      Grain is product × zone; downstream marts filter/aggregate for specific
+      analytical slices.

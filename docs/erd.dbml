@@ -1,0 +1,146 @@
+// Pharma Commercial Analytics — Raw Data Layer ERD
+// Sources: Salesforce (CRM), SAP (ERP), Hand-maintained seeds
+
+Table salesforce_account {
+  id varchar [pk]
+  account_number varchar
+  name varchar
+  account_type varchar
+  is_distributor boolean
+  parent_id varchar
+  tier varchar
+  country varchar
+  zone varchar
+  assigned_sales_rep_id varchar [ref: > salesforce_user.id]
+  contract_start_date date
+  payment_terms varchar
+  is_active boolean
+}
+
+Table salesforce_user {
+  id varchar [pk]
+  employee_id varchar
+  first_name varchar
+  last_name varchar
+  user_role varchar
+  manager_id varchar
+  assigned_zone varchar
+  country varchar
+  hire_date date
+  base_salary_usd number
+  hourly_cost_rate_usd number
+  commission_tier varchar
+  is_active boolean
+}
+
+Table salesforce_opportunity {
+  id varchar [pk]
+  opportunity_number varchar
+  account_id varchar [ref: > salesforce_account.id]
+  owner_id varchar [ref: > salesforce_user.id]
+  material_id number [ref: > sap_material_master.material_id]
+  device_serial_number varchar [unique]
+  quantity number
+  unit_sale_price_usd number
+  total_amount_usd number
+  discount_pct number
+  stage varchar
+  close_date date
+  hardware_install_date date
+  software_install_date date
+  warranty_start_date date
+  warranty_end_date date
+}
+
+Table salesforce_case {
+  id varchar [pk]
+  case_number varchar
+  account_id varchar [ref: > salesforce_account.id]
+  device_serial_number varchar [ref: > salesforce_opportunity.device_serial_number]
+  owner_id varchar [ref: > salesforce_user.id]
+  case_type varchar
+  priority varchar
+  status varchar
+  resolution_code varchar
+  is_in_warranty boolean
+  is_billable_to_customer boolean
+  engineer_hours_logged number
+  travel_hours_logged number
+  ticket_channel varchar
+  opened_date timestamp
+  resolved_date timestamp
+}
+
+Table salesforce_case_part_usage {
+  id varchar [pk]
+  case_id varchar [ref: > salesforce_case.id]
+  part_id number [ref: > sap_spare_parts.part_id]
+  quantity number
+  unit_cost_at_time_of_use_usd number
+  unit_price_charged_to_customer_usd number
+}
+
+Table sap_material_master {
+  material_id number [pk]
+  material_code varchar
+  material_name varchar
+  business_unit varchar
+  therapy_area varchar
+  product_family varchar
+  product_line varchar
+  disease_category varchar
+  list_price_usd number
+  production_cost_usd number
+  warranty_months number
+  service_tier varchar
+  requires_hw_install boolean
+  requires_sw_install boolean
+  launch_date date
+  is_active boolean
+}
+
+Table sap_distributor {
+  distributor_id number [pk]
+  sap_vendor_code varchar
+  salesforce_account_id varchar [ref: > salesforce_account.id]
+  distributor_name varchar
+  country varchar
+  warehouse_location varchar
+  credit_limit_usd number
+  payment_terms_days number
+  shipping_cost_per_order_usd number
+  regulatory_license_number varchar
+  license_expiry_date date
+  quality_certification varchar
+  is_approved_vendor boolean
+}
+
+Table sap_spare_parts {
+  part_id number [pk]
+  part_code varchar
+  part_name varchar
+  part_category varchar
+  compatible_product_line varchar
+  unit_cost_usd number
+  unit_price_usd number
+  is_active boolean
+}
+
+Table zone_hierarchy {
+  zone_code varchar [pk]
+  sub_zone_name varchar
+  zone_name varchar
+  country varchar
+  region varchar
+}
+
+Table region_disease_prevalence {
+  zone_code varchar [ref: > zone_hierarchy.zone_code]
+  disease_category varchar
+  prevalence_score number
+  source varchar
+  updated_date date
+  indexes {
+    (zone_code, disease_category) [pk]
+  }
+}

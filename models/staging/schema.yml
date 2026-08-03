@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: stg_salesforce__account
+    description: >
+      Salesforce Account staging model. Represents hospitals, hospital chains,
+      independent distributors, and clinics. Deleted records filtered out.
+      Standardizes column naming (created_date → created_at) and preserves
+      customer/distributor overlap via IS_DISTRIBUTOR flag.
+
+  - name: stg_salesforce__user
+    description: >
+      Salesforce User staging model. Represents all internal personas —
+      sales reps, field engineers, sales managers, regional service managers.
+      Persona distinction lives in USER_ROLE. Downstream models filter here.
+
+  - name: stg_salesforce__opportunity
+    description: >
+      Salesforce Opportunity staging model — the sales fact source. Each row
+      is one device sold, uniquely identified by DEVICE_SERIAL_NUMBER (the join
+      key to service tickets). Renames OWNER_ID → SALES_REP_ID and
+      CLOSE_DATE → SALE_DATE for semantic clarity.
+
+  - name: stg_salesforce__case
+    description: >
+      Salesforce Case staging model — service ticket source. Each row is one
+      support ticket on a specific device. IS_IN_WARRANTY reflects warranty
+      status at TICKET-OPEN time (not current time). Renames OWNER_ID →
+      FIELD_ENGINEER_ID for semantic clarity.
+
+  - name: stg_salesforce__case_part_usage
+    description: >
+      Salesforce Case Part Usage staging model. Child of Case — one row per
+      part consumed on a service ticket. Cost captured at time of use, frozen
+      even if part pricing changes later.
+
+  - name: stg_sap__material_master
+    description: >
+      SAP Material Master staging model — the product catalog. Medical devices
+      organized across a 4-level hierarchy (business_unit → therapy_area →
+      product_family → product_line). Renames LIST_PRICE_USD → LIST_PRICE.
+
+  - name: stg_sap__distributor
+    description: >
+      SAP Distributor staging model — supply-chain view of distributors.
+      Includes regulatory (license expiry, quality certification), financial
+      (credit limit, payment terms), and operational (warehouse, capacity)
+      attributes. Bridges to Salesforce via SALESFORCE_ACCOUNT_ID.
+
+  - name: stg_sap__spare_parts
+    description: >
+      SAP Spare Parts staging model — parts catalog. Each part is compatible
+      with one product line (simplification — real SAP models many-to-many
+      via a bridge table).
