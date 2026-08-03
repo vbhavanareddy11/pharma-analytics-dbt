@@ -48,11 +48,9 @@ Data flows from 3 source systems (Salesforce, SAP, hand-maintained CSVs) through
 
 ## Live dbt Docs
 
-[**→ Explore the live dbt documentation site**](https://YOUR-USERNAME.github.io/pharma-analytics-dbt/)
+[**→ Explore the live dbt documentation site**](https://vbhavanareddy11.github.io/pharma-analytics-dbt/)
 
 Browse all 22 models, click through the lineage graph, and read column-level descriptions on every mart.
-
-*(Placeholder — link goes live after GitHub Pages setup.)*
 
 ---
 
