@@ -1,0 +1,14 @@
+
+    
+    
+
+select
+    product_nk as unique_field,
+    count(*) as n_records
+
+from ANALYTICS.DBT_BHAVANA.dim_product
+where product_nk is not null
+group by product_nk
+having count(*) > 1
+
+
