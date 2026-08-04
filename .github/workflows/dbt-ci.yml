@@ -1,0 +1,65 @@
+name: dbt CI
+
+# When to run
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Manual trigger — you can also click "Run workflow" in GitHub UI
+  workflow_dispatch:
+
+jobs:
+  dbt-build:
+    name: Build and test dbt pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code from the repo
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      # Set up Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Install dbt-core + dbt-snowflake adapter
+      - name: Install dbt
+        run: |
+          pip install --upgrade pip
+          pip install dbt-core==1.11.12 dbt-snowflake==1.11.6
+
+      # Write profiles.yml on the runner using GitHub Secrets
+      # (never committed to repo — created fresh in the CI env each run)
+      - name: Configure dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOF
+          pharma_analytics:
+            target: dev
+            outputs:
+              dev:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                database: ANALYTICS
+                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                schema: DBT_CI
+                threads: 4
+          EOF
+
+      # Verify the connection before the build
+      - name: dbt debug
+        run: dbt debug
+
+      # Install dbt packages (if any packages.yml exists)
+      - name: dbt deps
+        run: dbt deps
+
+      # Build everything: seeds, models, snapshots, tests
+      - name: dbt build
+        run: dbt build --fail-fast
