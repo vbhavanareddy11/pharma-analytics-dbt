@@ -1,5 +1,7 @@
 # Pharma Commercial Analytics — dbt + Snowflake
 
+[![dbt CI](https://github.com/vbhavanareddy11/pharma-analytics-dbt/actions/workflows/dbt-ci.yml/badge.svg)](https://github.com/vbhavanareddy11/pharma-analytics-dbt/actions/workflows/dbt-ci.yml)
+
 A production-grade analytics engineering project that models a pharmaceutical medical device company's commercial operations across 14 APAC markets. Built with dbt Core, Snowflake, and real domain logic borrowed from 8+ years of BI/analytics experience in pharma commercial reporting.
 
 ---
